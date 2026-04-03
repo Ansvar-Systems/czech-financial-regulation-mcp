@@ -1,32 +1,37 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "eu.ansvar/czech-financial-regulation-mcp",
-  "description": "Query CNB (Česká národní banka) vyhlášky, úřední sdělení, dohledové benchmarky, and enforcement actions",
+  "description": "Czech National Bank (CNB) financial regulation MCP server — vyhlášky, úřední sdělení, dohledové benchmarky, and enforcement actions",
   "repository": {
     "url": "https://github.com/Ansvar-Systems/czech-financial-regulation-mcp",
     "source": "github"
   },
   "homepage": "https://ansvar.eu",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "license": "Apache-2.0",
   "keywords": [
-    "cnb",
-    "ceska-narodni-banka",
-    "czech-financial-regulation",
-    "financial-services",
-    "prudential",
+    "financial regulation",
+    "czech republic",
+    "regulation",
     "compliance",
-    "enforcement",
-    "mcp",
-    "ansvar"
+    "mcp"
   ],
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@ansvar/czech-financial-regulation-mcp",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "transport": {
         "type": "stdio"
+      }
+    },
+    {
+      "registryType": "npm",
+      "identifier": "@ansvar/czech-financial-regulation-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "streamable-http",
+        "url": "https://mcp.ansvar.eu/czech-financial-regulation/mcp"
       }
     }
   ]
