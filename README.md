@@ -5,6 +5,7 @@
 [![npm version](https://badge.fury.io/js/%40ansvar%2Fczech-financial-regulation-mcp.svg)](https://www.npmjs.com/package/@ansvar/czech-financial-regulation-mcp)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI](https://github.com/Ansvar-Systems/czech-financial-regulation-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Ansvar-Systems/czech-financial-regulation-mcp/actions/workflows/ci.yml)
+[![Build](https://github.com/Ansvar-Systems/czech-financial-regulation-mcp/actions/workflows/ghcr-build.yml/badge.svg)](https://github.com/Ansvar-Systems/czech-financial-regulation-mcp/actions/workflows/ghcr-build.yml)
 
 Query Czech financial regulation data -- regulations, decisions, and requirements from CNB (Czech National Bank) -- directly from Claude, Cursor, or any MCP-compatible client.
 
@@ -90,7 +91,7 @@ npx @ansvar/czech-financial-regulation-mcp
 
 ---
 
-## Available Tools (6)
+## Available Tools (8)
 
 | Tool | Description |
 |------|-------------|
@@ -100,6 +101,8 @@ npx @ansvar/czech-financial-regulation-mcp
 | `cz_fin_search_enforcement` | Search CNB enforcement actions — sanctions, fines, licence revocations, and restrictions issued against regulated ent... |
 | `cz_fin_check_currency` | Check whether a specific CNB provision reference is currently in force. Returns status and effective date. |
 | `cz_fin_about` | Return metadata about this MCP server: version, data source, tool list. |
+| `cz_fin_list_sources` | List all CNB data sources with provenance metadata: authority, source URL, jurisdiction, and language. |
+| `cz_fin_check_data_freshness` | Check data freshness: last ingest date, staleness in days, provision and enforcement counts. |
 
 All tools return structured data with source references and timestamps.
 
@@ -117,7 +120,7 @@ All content is sourced from official Czech regulatory publications:
 - Freshness checks run via GitHub Actions workflows
 - Last-updated timestamps in tool responses indicate data age
 
-See `sources.yml` for full provenance metadata.
+See [COVERAGE.md](COVERAGE.md) for full provenance metadata and corpus details. Use the `cz_fin_list_sources` tool to query source provenance programmatically.
 
 ---
 
@@ -180,8 +183,8 @@ npx @anthropic/mcp-inspector node dist/index.js   # Test with MCP Inspector
 ### Data Management
 
 ```bash
-npm run build:db       # Rebuild SQLite database from seed data
-npm run check-updates  # Check for new regulatory data
+npm run ingest   # Ingest latest CNB regulatory data (requires network access)
+npm run seed     # Seed database with sample data (for development)
 ```
 
 ---
@@ -218,7 +221,7 @@ Apache License 2.0. See [LICENSE](./LICENSE) for details.
 
 ### Data Licenses
 
-Regulatory data sourced from official government publications. See `sources.yml` for per-source licensing details.
+Regulatory data sourced from official government publications. See [COVERAGE.md](COVERAGE.md) for per-source licensing details.
 
 ---
 
