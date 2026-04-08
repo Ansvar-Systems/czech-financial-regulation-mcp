@@ -12,7 +12,7 @@
  */
 
 import { createServer } from "node:http";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
@@ -45,6 +45,58 @@ try {
   pkgVersion = pkg.version;
 } catch {
   // fallback
+}
+
+// ─── Ingest state ─────────────────────────────────────────────────────────────
+
+interface IngestState {
+  lastRun: string;
+  provisionCount: number;
+  enforcementCount: number;
+}
+
+const INGEST_STATE_PATH =
+  process.env["CNB_INGEST_STATE_PATH"] ?? "data/ingest-state.json";
+
+function loadIngestState(): IngestState | null {
+  const candidates = [
+    INGEST_STATE_PATH,
+    join(__dirname, "..", "..", "data", "ingest-state.json"),
+    join(__dirname, "..", "data", "ingest-state.json"),
+  ];
+  for (const p of candidates) {
+    try {
+      if (existsSync(p)) {
+        return JSON.parse(readFileSync(p, "utf8")) as IngestState;
+      }
+    } catch {
+      // try next
+    }
+  }
+  return null;
+}
+
+let _ingestState: IngestState | null | undefined = undefined;
+
+function getIngestState(): IngestState | null {
+  if (_ingestState === undefined) {
+    _ingestState = loadIngestState();
+  }
+  return _ingestState;
+}
+
+// ─── _meta helper ────────────────────────────────────────────────────────────
+
+function buildMeta() {
+  const state = getIngestState();
+  return {
+    disclaimer:
+      "This data is sourced from official CNB (Czech National Bank) publications and is provided for informational purposes only. Verify all references against primary sources before making compliance decisions. This is not regulatory or legal advice.",
+    source_url: "https://www.cnb.cz/",
+    copyright:
+      "© Česká národní banka (Czech National Bank). Official regulatory publications reproduced for informational purposes.",
+    data_age: state?.lastRun ?? null,
+  };
 }
 
 // ─── Tool definitions ─────────────────────────────────────────────────────────
@@ -121,6 +173,18 @@ const TOOLS = [
     description: "Return metadata about this MCP server: version, data source, tool list.",
     inputSchema: { type: "object" as const, properties: {}, required: [] },
   },
+  {
+    name: "cz_fin_list_sources",
+    description:
+      "List all CNB data sources with provenance metadata: authority, source URL, jurisdiction, and language. Use this to understand where the regulatory data originates.",
+    inputSchema: { type: "object" as const, properties: {}, required: [] },
+  },
+  {
+    name: "cz_fin_check_data_freshness",
+    description:
+      "Check data freshness: last ingest date, staleness in days, provision and enforcement counts, and update instructions. Use before relying on data for time-sensitive compliance work.",
+    inputSchema: { type: "object" as const, properties: {}, required: [] },
+  },
 ];
 
 // ─── Zod schemas ─────────────────────────────────────────────────────────────
@@ -163,8 +227,12 @@ function createMcpServer(): Server {
     const { name, arguments: args = {} } = request.params;
 
     function textContent(data: unknown) {
+      const withMeta =
+        typeof data === "object" && data !== null
+          ? { ...(data as object), _meta: buildMeta() }
+          : data;
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+        content: [{ type: "text" as const, text: JSON.stringify(withMeta, null, 2) }],
       };
     }
 
@@ -228,6 +296,84 @@ function createMcpServer(): Server {
               "Czech National Bank (CNB / Česká národní banka) financial regulation MCP server. Provides access to CNB vyhlášky (decrees), úřední sdělení (official communications), dohledové benchmarky (supervisory benchmarks), and enforcement actions.",
             data_source: "CNB regulatory publications (https://www.cnb.cz/)",
             tools: TOOLS.map((t) => ({ name: t.name, description: t.description })),
+          });
+        }
+
+        case "cz_fin_list_sources": {
+          return textContent({
+            sources: [
+              {
+                id: "CNB_VYHLASKY",
+                name: "Vyhlášky ČNB",
+                description: "Czech National Bank decrees (binding secondary legislation)",
+                authority: "Česká národní banka (Czech National Bank)",
+                source_url: "https://www.cnb.cz/cs/legislativa/vyhlasky/",
+                jurisdiction: "CZ",
+                language: "cs",
+                license: "Official government publication — reproduced for informational purposes",
+              },
+              {
+                id: "CNB_UREDNI_SDELENI",
+                name: "Úřední sdělení ČNB",
+                description: "CNB official communications — interpretive notices and guidance",
+                authority: "Česká národní banka (Czech National Bank)",
+                source_url: "https://www.cnb.cz/cs/legislativa/uredni_sdeleni/",
+                jurisdiction: "CZ",
+                language: "cs",
+                license: "Official government publication — reproduced for informational purposes",
+              },
+              {
+                id: "CNB_DOHLEDOVE_BENCHMARKY",
+                name: "Dohledové benchmarky ČNB",
+                description: "CNB supervisory benchmarks and dohledová sdělení — supervisory expectations",
+                authority: "Česká národní banka (Czech National Bank)",
+                source_url: "https://www.cnb.cz/cs/dohled-financni-trh/vykon-dohledu/dohledova-uredni-sdeleni-a-benchmarky/",
+                jurisdiction: "CZ",
+                language: "cs",
+                license: "Official government publication — reproduced for informational purposes",
+              },
+              {
+                id: "CNB_ENFORCEMENT",
+                name: "Pravomocná rozhodnutí ČNB",
+                description: "CNB enforcement decisions — sanctions, fines, licence revocations, and restrictions",
+                authority: "Česká národní banka (Czech National Bank)",
+                source_url: "https://www.cnb.cz/cs/dohled-financni-trh/vykon-dohledu/pravomocna-rozhodnuti/",
+                jurisdiction: "CZ",
+                language: "cs",
+                license: "Official government publication — reproduced for informational purposes",
+              },
+            ],
+          });
+        }
+
+        case "cz_fin_check_data_freshness": {
+          const state = getIngestState();
+          if (!state) {
+            return textContent({
+              status: "unknown",
+              message: "Ingest state file not found. Data freshness cannot be determined.",
+              last_ingest: null,
+              stale_days: null,
+              provision_count: null,
+              enforcement_count: null,
+              update_instructions: "Run `npm run ingest` to refresh the database from CNB sources.",
+            });
+          }
+          const lastIngest = new Date(state.lastRun);
+          const nowMs = Date.now();
+          const staleDays = Math.floor(
+            (nowMs - lastIngest.getTime()) / (1000 * 60 * 60 * 24),
+          );
+          const STALE_THRESHOLD = 30;
+          return textContent({
+            status: staleDays > STALE_THRESHOLD ? "stale" : "fresh",
+            last_ingest: state.lastRun,
+            stale_days: staleDays,
+            stale_threshold_days: STALE_THRESHOLD,
+            provision_count: state.provisionCount,
+            enforcement_count: state.enforcementCount,
+            update_instructions:
+              "To refresh: clone the repository and run `npm run ingest` (requires network access to cnb.cz). The hosted version is rebuilt automatically via GitHub Actions.",
           });
         }
 

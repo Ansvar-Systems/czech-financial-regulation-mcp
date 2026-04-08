@@ -1,0 +1,61 @@
+{
+  "corpus": {
+    "provision_count": 498,
+    "enforcement_count": 26,
+    "last_ingested": "2026-03-23",
+    "jurisdiction": "CZ",
+    "language": "cs",
+    "authority": "Česká národní banka (Czech National Bank)"
+  },
+  "sourcebooks": [
+    {
+      "id": "CNB_VYHLASKY",
+      "name": "Vyhlášky ČNB",
+      "description": "Czech National Bank decrees — binding secondary legislation",
+      "source_url": "https://www.cnb.cz/cs/legislativa/vyhlasky/"
+    },
+    {
+      "id": "CNB_UREDNI_SDELENI",
+      "name": "Úřední sdělení ČNB",
+      "description": "CNB official communications — interpretive notices and guidance",
+      "source_url": "https://www.cnb.cz/cs/legislativa/uredni_sdeleni/"
+    },
+    {
+      "id": "CNB_DOHLEDOVE_BENCHMARKY",
+      "name": "Dohledové benchmarky ČNB",
+      "description": "CNB supervisory benchmarks and supervisory communications (2012–2026)",
+      "source_url": "https://www.cnb.cz/cs/dohled-financni-trh/vykon-dohledu/dohledova-uredni-sdeleni-a-benchmarky/"
+    },
+    {
+      "id": "CNB_ENFORCEMENT",
+      "name": "Pravomocná rozhodnutí ČNB",
+      "description": "CNB enforcement decisions — sanctions, fines, licence revocations, and restrictions",
+      "source_url": "https://www.cnb.cz/cs/dohled-financni-trh/vykon-dohledu/pravomocna-rozhodnuti/"
+    }
+  ],
+  "categories_ingested": [
+    "CNB_BANKY",
+    "CNB_POJISTOVNY",
+    "CNB_PENZIJNI",
+    "CNB_OBCHODNICI_CP",
+    "CNB_INVESTICNI",
+    "CNB_PLATEBNI",
+    "CNB_SMENARNY",
+    "CNB_AML",
+    "CNB_EMISE",
+    "CNB_OBCHODNI_SYSTEMY",
+    "CNB_OTC_DERIVATY",
+    "CNB_SPOTREBITEL",
+    "CNB_KRYPTOAKTIVA",
+    "CNB_DORA",
+    "CNB_UDRZITELNE_FINANCE",
+    "CNB_OZDRAVNE_POSTUPY",
+    "CNB_KONGLOMERATY"
+  ],
+  "known_gaps": [
+    "CNB press releases not included",
+    "Informal CNB guidance outside official channels not included",
+    "Historical repealed decrees prior to CNB website archive may be incomplete",
+    "EU directly applicable regulations (CRR, EMIR, etc.) not included"
+  ]
+}
